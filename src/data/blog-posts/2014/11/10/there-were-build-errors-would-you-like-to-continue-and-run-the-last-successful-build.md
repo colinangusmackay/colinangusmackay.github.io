@@ -1,0 +1,12 @@
+---
+title: "There were build errors. Would you like to continue and run the last successful build?"
+slug: there-were-build-errors-would-you-like-to-continue-and-run-the-last-successful-build
+publishDate: 10 Nov 2014
+description: "Oh, Would I! Could I really do that?!? Well yes, but I cannot think of any situation where I would want to do this. I’m not saying there isn’t a time I might..."
+tags:
+  - { name: "build", slug: build }
+  - { name: "visual studio", slug: visual-studio }
+---
+<!-- TODO: convert this post's content to Markdown -->
+
+<p><img style="float:none;margin-left:auto;display:block;margin-right:auto;" src="http://static.colinmackay.co.uk/images/visual-studio/2014-11-10-There-were-build-errors.png" /></p>  <p><em>Oh, Would I! Could I really do that?!?</em>&#160; Well yes, but I cannot think of any situation where I would want to do this. I’m not saying there isn’t a time I might conceivably possibly maybe actually want this, but I can’t think of it right now and I’ve not come across that situation for as long as I can remember getting this stupid dialog..</p>  <p>Now, obviously you can press the “Do not show this dialog again” and press “No” and it will remember that as your default choice. However, what if, like me, you were a bit ham fisted and accidentally pressed “Yes” and then wonder why your latest changes simply don’t work. How do I fix that? There’s no dialog any more.</p>  <p>The setting is accessible from Visual Studio’s Options dialog. You can get to by going to Tools–&gt;Options:</p>  <p><img style="float:none;margin-left:auto;display:block;margin-right:auto;" src="http://static.colinmackay.co.uk/images/visual-studio/2014-11-10-Tools-menu.png" /></p>  <p>In the options dialog go to Projects and Solutions—&gt;Build and Run</p>  <p><img style="float:left;display:inline;" src="http://static.colinmackay.co.uk/images/visual-studio/2014-11-10-Options-Projects-and-solutions-Build-and-run.png" align="center" /></p>  <p>There you will see the option &quot;On Run, when build or deployment errors occur:&quot; and a drop down indicating the action. Change the drop down to &quot;Do not launch&quot; in order to ensure that your application does not launch when a build error occurs.</p>  <p>While we are here, do you ever want to run your application when the projects are out of date? I can’t think of any time I’ve wanted to do that. There is an option to stop prompting you do do that and just “always build” in that case.</p>  <p>Once you’ve made your changes, press “OK” to save the changes.</p>

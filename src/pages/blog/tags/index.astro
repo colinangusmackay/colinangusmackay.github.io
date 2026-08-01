@@ -1,0 +1,58 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const posts = await getCollection('posts')
+const tagMap = new Map();
+
+for (const post of posts) {
+  for (const tag of post.data.tags) {
+    if (!tagMap.has(tag.slug)) {
+      tagMap.set(tag.slug, { name: tag.name, count: 0 });
+    }
+    tagMap.get(tag.slug).count++;
+  }
+}
+
+const tags = Array.from(tagMap.entries())
+  .map(([slug, { name, count }]) => ({ slug, name, count }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const title = 'Tags';
+const description = 'Browse all blog post tags.';
+const permalink = `${Astro.site.href}blog/tags`;
+---
+
+<BaseLayout title={title} description={description} permalink={permalink} current="blog">
+  <div class="container">
+    <h1>Tags</h1>
+    <ul class="tag-index">
+      {tags.map((tag) => (
+        <li>
+          <a href={`/blog/tags/${tag.slug}`}>{tag.name}</a> <span class="tag-count">({tag.count})</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .tag-index {
+    list-style: none;
+    margin: 2em 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8em 1.5em;
+  }
+
+  .tag-index a {
+    font-family: var(--font-family-sans);
+    font-weight: 700;
+  }
+
+  .tag-count {
+    color: var(--text-secondary);
+    font-family: var(--font-family-sans);
+  }
+</style>

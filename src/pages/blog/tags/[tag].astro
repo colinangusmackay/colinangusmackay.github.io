@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostList from '../../../components/PostList.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts')
+  const tagMap = new Map();
+
+  for (const post of posts) {
+    for (const tag of post.data.tags) {
+      if (!tagMap.has(tag.slug)) {
+        tagMap.set(tag.slug, { name: tag.name, posts: [] });
+      }
+      tagMap.get(tag.slug).posts.push(post);
+    }
+  }
+
+  return Array.from(tagMap.entries()).map(([slug, { name, posts }]) => ({
+    params: { tag: slug },
+    props: {
+      tagName: name,
+      posts: posts.sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf()),
+    },
+  }));
+}
+
+const { tagName, posts } = Astro.props;
+const title = `Posts tagged "${tagName}"`;
+const description = `All blog posts tagged ${tagName}.`;
+const permalink = `${Astro.site.href}blog/tags/${Astro.params.tag}`;
+---
+
+<BaseLayout title={title} description={description} permalink={permalink} current="blog">
+  <div class="container">
+    <h1>Tag: {tagName}</h1>
+    <p><a href="/blog/tags">All tags</a></p>
+    <PostList posts={posts} />
+  </div>
+</BaseLayout>

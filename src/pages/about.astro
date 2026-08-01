@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const title = 'About';
+const description = 'About your blog.';
+const permalink = `${Astro.site.href}about`;
+---
+
+<BaseLayout title={title} description={description} permalink={permalink} current="about">
+  <div class="container">
+    <h1>About</h1>
+    <figure class="about-image">
+      <img src="/assets/home-self-small.webp" alt="Photograph of Colin Mackay" width="330">
+      <figcaption>
+        Photograph of Colin Mackay.
+      </figcaption>
+    </figure>
+    <p>Colin is a software developer based in central Scotland and has been writing software for over 30 years, primarily in C++ then in C#.</p>
+    <p>His hobbies include <a href="/recipes">cooking</a> and <a href="/family-tree">researching his family tree</a>.</p>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-image {
+    float: right;
+    margin: -3em -7em 2em 2em;
+    max-width: 300px;
+  }
+
+  .about-image img {
+    border-radius: 8px;
+    margin-bottom: 1.5em;
+  }
+
+  @media (max-width: 1020px) {
+    .about-image {
+      float: none;
+      margin: 0 auto 2em;
+    }
+  }
+</style>

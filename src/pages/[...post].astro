@@ -1,0 +1,69 @@
+---
+import { getCollection, render } from 'astro:content'
+import readingTime from 'reading-time'
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Bio from '../components/Bio.astro';
+import TagList from '../components/TagList.astro';
+import PostNav from '../components/PostNav.astro';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('posts')
+  const sorted = [...posts].sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf());
+
+  return sorted.map((p, index) => ({
+    params: { post: p.id },
+    props: {
+      post: p,
+      // sorted is newest-first, so the next entry is the older post and the
+      // previous entry is the newer one.
+      previousPost: sorted[index + 1] ?? null,
+      nextPost: sorted[index - 1] ?? null,
+    },
+  }));
+}
+
+const { post, previousPost, nextPost } = Astro.props
+const { title, description, publishDate, tags } = post.data;
+const readingTimeEstimate = readingTime(post.body).text
+const permalink = `${Astro.site.href}${post.id}/`;
+const { Content } = await render(post)
+---
+
+<BaseLayout title={title} description={description} permalink={permalink} current="blog">
+  <header>
+    <h1>{title}</h1>
+    <p>{publishDate} ~ {readingTimeEstimate}</p>
+    <TagList tags={tags} />
+    <hr />
+  </header>
+  <div class="container">
+    <article class="content">
+      <Content />
+    </article>
+    <hr />
+    <PostNav previous={previousPost} next={nextPost} />
+    <Bio />
+  </div>
+</BaseLayout>
+
+<style>
+  header {
+    text-align: center;
+  }
+
+  header h1 {
+    margin-bottom: 0.7em;
+  }
+
+  header p {
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-family: var(--font-family-sans);
+    font-weight: 600;
+  }
+
+  header hr {
+    min-width: 100px;
+    width: 30%;
+  }
+</style>

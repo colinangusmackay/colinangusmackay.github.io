@@ -17,5 +17,6 @@ You may have noticed the odd rant now and again when I get frustrated at people 
 - [Incoming!](/2007/06/16/incoming/)
 
 Well, now I have  a solution in the form of a link to a <a href="http://www.microsoft.com/" target="_blank" title="Microsoft">Microsoft</a> Knowledge Base article. It is clear, it is polite, and it tells people almost everything they need to do in order to obtain free help from forums.
-And here it is: [How to ask a question](http://support.microsoft.com/kb/555375)
-NOTE: This was rescued from the Google cache. The original date was Tuesday, 10th April, 2007.
+And here it is: [How to ask a question](https://web.archive.org/web/20070629125212/http://support.microsoft.com/kb/555375)\*
+
+\* This is a link to the wayback machine at the internet archive as the original page has since died.

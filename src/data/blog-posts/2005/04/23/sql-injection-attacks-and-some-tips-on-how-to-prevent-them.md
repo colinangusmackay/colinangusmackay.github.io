@@ -22,7 +22,7 @@ There are two main types of attacks. First-order attacks are when the attacker r
 
 In the following example, assume that a web site is being used to mount an attack on the database. If you think about a typical SQL statement, you might think of something like:
 
-```sql
+```
 SELECT ProductName, QuantityPerUnit, UnitPrice
 FROM Products
 WHERE ProductName LIKE 'G%'
@@ -30,7 +30,7 @@ WHERE ProductName LIKE 'G%'
 
 The objective of the attacker is to inject their own SQL into the statement that the application will use to query the database. If, for instance, the above query was generated from a search feature on a web site, then they user may have inserted the "G" as their query. If the server side code then inserts the user input directly into the SQL statement, it might look like this:
 
-```csharp
+```
 string sql = "SELECT ProductName, QuantityPerUnit, UnitPrice "+
     "FROM Products " +
     "WHERE ProductName LIKE '"+this.search.Text+"%';
@@ -40,21 +40,21 @@ da.Fill(productDataSet);
 
 This is all fine if the data is valid, but what if the user types something unexpected? What happens if the user types:
 
-```sql
+```
 ' UNION SELECT name, type, id FROM sysobjects;--
 ```
 
 Note the initial apostrophe; it closes the opening quote in the original SQL statement. Also, note the two dashes at the end; that starts a comment, which means that anything left in the original SQL statement is ignored.
 Now, when the attacker views the page that was meant to list the products the user has searched for, they get a list of all the names of all the objects in the database and the type of object that they are. From this list, the attacker can see that there is a table called *Users*. If they take note of the `id` for the *Users* table, they could then inject the following:
 
-```sql
+```
 ' UNION SELECT name, '', length FROM syscolumns
 WHERE id = 1845581613;--
 ```
 
 This would give them a list of the column names in the *Users* table. Now they have enough information to get access to a list of users, passwords, and if they have admin privileges on the web site.
 
-```sql
+```
 ' UNION SELECT UserName, Password, IsAdmin FROM Users;--
 ```
 
@@ -79,27 +79,27 @@ Running an application that connects to the database using the database's admini
 Using the example application above, an attacker could inject the following to discover the contents of the hard disk(s) on the server.
 The first command is used to create a temporary store on the database and fill it with some data. The following injected code will create a table with the same structure as the result set of the extended stored procedure that will be called. It then populates the table with the results of the extended stored procedure.
 
-```sql
+```
 '; CREATE TABLE haxor(name varchar(255), mb_free int);
 INSERT INTO haxor  EXEC master..xp_fixeddrives;--
 ```
 
 A second injection attack has to take place in order to get the data out again.
 
-```sql
+```
 ' UNION SELECT name, cast((mb_free) as varchar(10)), 1.0 FROM haxor;--
 ```
 
 This returns the name of the disks with the available capacity in megabytes. Now that the drive letters of the disks are known, a new injection attack can take place in order to find out what is on those disks.
 
-```sql
+```
 '; DROP TABLE haxor;CREATE TABLE haxor(line varchar(255) null);
 INSERT INTO haxor EXEC master..xp_cmdshell 'dir /s c:';--
 ```
 
 And again, a second injection attack is used to get the data out again.
 
-```sql
+```
 ' UNION SELECT line, '', 1.0 FROM haxor;--
 ```
 
@@ -115,7 +115,7 @@ Microsoft recommends that during the installation of SQL Server, the service is 
 
 In many applications, the developer has side-stepped the potential use of the apostrophe as a way to get access to the system by performing a string replace on the input given by the user. This is useful for valid reasons, such as being able to enter surnames such as "O'Brian" or "D'Arcy", and so the developer may not even realise that they have partly defeated a SQL injection attack. For example:
 
-```csharp
+```
 string surname = this.surnameTb.Text.Replace("'", "''");
 string sql = "Update Users SET Surname='"+surname+"' "+
     "WHERE id="+userID;
@@ -124,26 +124,26 @@ string sql = "Update Users SET Surname='"+surname+"' "+
 All of the previous injection attack examples would cease to work given a scenario like this.
 However, many applications need the user to enter numbers and these don't need to have the apostrophes escaped like a text string. If an application allows the user to review their orders by year, the application may execute some SQL like this:
 
-```sql
+```
 SELECT * FROM Orders WHERE DATEPART(YEAR, OrderDate) = 1996
 ```
 
 And in order for the application to execute it, the C# code to build the SQL command might look like this:
 
-```csharp
+```
 string sql = "SELECT * FROM Orders WHERE DATEPART(YEAR, OrderDate) = "+
     this.orderYearTb.Text);
 ```
 
 It becomes easy to inject code into the database again. All the attackers need to do in this instance is start their attack with a number, then they inject the code they want to run. Like this:
 
-```sql
+```
 0; DELETE FROM Orders WHERE ID = 'competitor';--
 ```
 
 It is therefore imperative that the input from the user is checked to determine that it really is a number, and in the valid range. For instance:
 
-```csharp
+```
 string stringValue = orderYearTb.Text;
 Regex re = new Regex(@"D");
 Match m = re.Match(someTextBox.Text);
@@ -167,20 +167,20 @@ A second-order attack is one where the data lies dormant in the database until s
 Consider an application that permits the users to set up some favourite search criteria. When the user defines the search parameters, the application escapes out all the apostrophes so that a first-order attack cannot occur when the data for the favourite is inserted into the database. However, when the user comes to perform the search, the data is taken from the database and used to form a second query which then performs the actual search. It is this second query which is the victim of the attack.
 For example. If the user types the following as the search criteria:
 
-```sql
+```
 '; DELETE Orders;--
 ```
 
 The application takes this input and escapes out apostrophe so that the final SQL statement might look like this:
 
-```sql
+```
 INSERT Favourites (UserID, FriendlyName, Criteria)
 VALUES(123, 'My Attack', ''';DELETE Orders;--')
 ```
 
 which is entered into the database without problems. However, when the user selects their favourite search, the data is retrieved to the application, which forms a new SQL command and executes that. For example, the C# code might look like:
 
-```csharp
+```
 // Get the valid user name and friendly name of the favourite
 int uid = this.GetUserID();
 string friendlyName = this.GetFriendlyName();
@@ -200,7 +200,7 @@ da.Fill(this.productDataSet);
 
 The second query to the database, when fully expanded, now looks like this:
 
-```sql
+```
 SELECT * FROM Products WHERE ProductName = ''; DELETE Orders;--
 ```
 
@@ -211,7 +211,7 @@ It will return no results for the expected query, but the company has just lost 
 SQL Server, like many database systems, supports a concept called parameterised queries. This is where the SQL Command uses a parameter instead of injecting the values directly into the command. The particular second-order attack above would not have been possible if parameterised queries had been used.
 Where the application developer would have constructed a `SqlCommand` object like this:
 
-```csharp
+```
 string cmdText=string.Format("SELECT * FROM Customers "+
     "WHERE Country='{0}'", countryName);
 SqlCommand cmd = new SqlCommand(cmdText, conn);
@@ -219,7 +219,7 @@ SqlCommand cmd = new SqlCommand(cmdText, conn);
 
 A parameterised query would look like this:
 
-```csharp
+```
 string commandText = "SELECT * FROM Customers "+
     "WHERE Country = @CountryName";
 SqlCommand cmd = new SqlCommand(commandText, conn);
@@ -229,7 +229,7 @@ cmd.Parameters.Add("@CountryName",countryName);
 The value is replaced by a placeholder, the parameter, and then the parameter's value is added to the `Parameters` collection on the command.
 While many second-order attacks can be prevented by using parameters, they can only be used in places were a parameter is permitted in the SQL statement. The application may return a variable sized result set based on user preference. The SQL statement would include the `TOP` keyword in order to limit the result set, however, in SQL Server 2000, `TOP` can only accept literal values so the application would have to inject that value into the SQL command to obtain that functionality. For example:
 
-```csharp
+```
 string sql = string.Format("SELECT TOP {0} * FROM Products", numResults);
 ```
 
@@ -253,7 +253,7 @@ The above example shows that the password is always contained in the database an
 While stored procedures seem to be a wonderful panacea against injection attacks, this is not necessarily the case. As mentioned above, it is important to validate data to check that it is correct and it is a definite benefit of stored procedures that they can do this; however, it is doubly important to validate data if the stored procedure is going to use `EXEC(`*`some_string`*`)` where `some_string` is built up from data and string literals to form a new command.
 For instance, if the stored procedure is to modify the data model of the database, such as creating a table, the code may be written as follows:
 
-```sql
+```
 CREATE PROCEDURE dbo.CreateUserTable
 @userName sysname
 AS
@@ -264,7 +264,7 @@ GO
 
 It is obvious that whatever `@userName` contains will be appended to the `CREATE` statement. An attacker could inject into the application some code that sets the user name to be:
 
-```sql
+```
 a(c1 int); SHUTDOWN WITH NOWAIT;--
 ```
 
@@ -272,7 +272,7 @@ which will immediately stop the SQL Server without waiting for other requests to
 It is important to validate the input to ensure that no illegal characters are present. The application could be set to ensure that spaces are not permitted as part of the user name and this could be rejected before it ever got as far as constructing the `CREATE` statement.
 If the stored procedure is going to construct a SQL command based on an existing object, such as a table or view, then it should check that such an object exists. For instance:
 
-```sql
+```
 CREATE PROCEDURE dbo.AlterUserTable
 @userName sysname
 AS
@@ -291,7 +291,7 @@ GO
 
 Error messages are useful to an attacker because they give additional information about the database that might not otherwise be available. It is often thought of as being helpful for the application to return an error message to the user if something goes wrong so that if the problem persists they have some useful information to tell the technical support team. Applications will often have some code that looks like this:
 
-```csharp
+```
 try
 {
      // Attempt some database operation
@@ -306,7 +306,7 @@ catch(Exception e)
 
 A better solution that does not compromise security would be to display a generic error message that simply states an error has occurred with a unique ID. The unique ID means nothing to the user, but it will be logged along with the actual error diagnostics on the server which the technical support team has access to. The code above would change to something like this instead:
 
-```csharp
+```
 try
 {
     // Attempt some database operation

@@ -9,7 +9,7 @@ tags:
 ---
 This is an example of how to obtain a list of all subdirectories using a recursive method with the .NET Framework.
 
-```csharp
+```
 public static List GetSubdirectories(DirectoryInfo directory)
 {
     // Set up the result of the method.

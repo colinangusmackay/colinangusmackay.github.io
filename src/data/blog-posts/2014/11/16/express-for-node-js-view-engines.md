@@ -19,7 +19,7 @@ So, I’m going to use <a href="http://www.embeddedjs.com/" target="_blank">EJS<
 
 To install EJS add the "ejs" package to the application.
 
-```
+```bash
 npm install ejs --save
 ```
 
@@ -27,7 +27,7 @@ npm install ejs --save
 
 Express needs to know which view engine is going to be used, it also needs to know where you are going to store the views. So the following lines are needed in the `app.js` file from the previous post
 
-```
+```js
 app.set("view engine","ejs");
 app.set("views","./views");
 ```
@@ -36,13 +36,13 @@ app.set("views","./views");
 
 As express has been told to look in a directory called "views" to get the views, the view is going to go into that directory. At this time all that is going into `helloworld.ejs` is the HTML that was derectly sent form the route in the last post. The `helloworld.ejs` file now looks like this:
 
-```
+```html
 <h1>Hello, World!</h1>
 ```
 
 And the route looks like this:
 
-```
+```js
 module.exports = function(req, res) {
     res.render("helloworld");
 };
@@ -56,7 +56,7 @@ So far, this has done nothing new for us. The power of views is the ability to p
 
 This is relatively easy. All that needs to happen is that the `response.render` call needs an additional parameter which contains the information.
 
-```
+```js
 module.exports = function(req, res) {
     res.render("helloworld",{name:"Colin"});
 };
@@ -64,7 +64,7 @@ module.exports = function(req, res) {
 
 In order to render the information the view has to be changed too.
 
-```
+```html
 <h1>Hello, <%= name %>!</h1>
 ```
 
@@ -72,13 +72,13 @@ In order to render the information the view has to be changed too.
 
 EJS, out of the box, does not support layouts (or master pages as .NET’s ASPX view engine calls them). However there is a package that can be added that adds layout support. To install:
 
-```
+```bash
 npm install express-ejs-layouts --save
 ```
 
 And the changes in app.js file
 
-```
+```js
 // in the requirements section
 var ejsLayouts = require("express-ejs-layouts");
 ...
@@ -90,7 +90,7 @@ And that's it. Your application can now use layouts, by default it uses the file
 
 To demonstrate this, here is a layout:
 
-```
+```html
 <!DOCTYPE HTML>
 <html>
     <head>
@@ -116,7 +116,7 @@ By default Express will not serve static files. It needs to be told explicitly w
 
 To set up a folder to be served add the following line to the `app.js` file:
 
-```
+```js
 app.use(express.static(__dirname + '/public'));
 ```
 
@@ -132,7 +132,7 @@ In this post the Hello World application was advanced with the EJS view engine a
 
 The `app.js` file now looks like this:
 
-```
+```js
 // Requirements
 var express = require("express");
 var http = require("http");
@@ -156,7 +156,7 @@ http.createServer(app).listen(app.get("port"), function(){
 
 The `routes/hello.js` file now looks like this:
 
-```
+```js
 module.exports = function(req, res) {
     res.render("helloworld",{name:"Colin"});
 };
@@ -164,7 +164,7 @@ module.exports = function(req, res) {
 
 The `views/layout.ejs` file looks like this:
 
-```
+```html
 <!DOCTYPE HTML>
 <html>
     <head>
@@ -183,7 +183,7 @@ The `views/layout.ejs` file looks like this:
 
 The `views/helloworld.ejs` file looks like this:
 
-```
+```html
 <div class="row">
     <div class="col-md-12">
         <h1>Hello, <%= name %>!</h1>

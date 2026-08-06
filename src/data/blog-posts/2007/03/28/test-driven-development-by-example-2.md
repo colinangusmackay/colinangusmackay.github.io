@@ -788,4 +788,4 @@ The full final code is available in the associated download along with a set of 
 
 ### Downloads
 
-You can [download the example code for this article here](http://static.colinmackay.co.uk/downloads/tdd/2007-03-28-NumbersInWords.zip "Numbers in Words example").
+You can [access the full example code for this article on GitHub](https://github.com/colinangusmackay/blog-2007-03-28-test-driven-development-by-example "Numbers in Words example").

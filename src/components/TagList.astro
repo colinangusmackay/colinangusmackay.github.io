@@ -24,7 +24,9 @@ const { tags = [] } = Astro.props;
   }
 
   .tag-list a {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
     font-family: var(--font-family-sans);
     font-size: 0.8rem;
     font-weight: 600;
@@ -35,6 +37,17 @@ const { tags = [] } = Astro.props;
     padding: 0.3em 0.9em;
     text-decoration: none;
     transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+  }
+
+  .tag-list a::before {
+    content: '';
+    display: block;
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+    background-color: currentColor;
+    mask: url('/assets/tag.svg') no-repeat center / contain;
+    -webkit-mask: url('/assets/tag.svg') no-repeat center / contain;
   }
 
   .tag-list a:hover {

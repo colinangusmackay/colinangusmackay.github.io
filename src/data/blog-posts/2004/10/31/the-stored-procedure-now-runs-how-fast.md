@@ -4,8 +4,8 @@ slug: the-stored-procedure-now-runs-how-fast
 publishDate: 31 Oct 2004
 description: "On our test server the stored procedure ran acceptably in a few seconds so it came as somewhat as a shock when trying the application out on the client's test server that the same code was timing out after 20 minutes...'"
 tags:
-  - { name: "SQL", slug: sql }
-  - { name: "Optimisation", slug: optimisation }
+  - { name: "SQL", slug: "sql" }
+  - { name: "Optimisation", slug: "optimisation" }
 ---
 
 A few days ago I was having some problems with a stored procedure taking too long. On our test server the stored procedure ran acceptably in a few seconds so it came as somewhat as a shock when trying the application out on the client's test server that the same code was timing out after 20 minutes. Now given the number of times this stored procedure was going to be called the data aggregation and extraction utility it was part of would take somewhere in the region of 2 weeks to run.

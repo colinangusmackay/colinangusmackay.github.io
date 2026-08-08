@@ -4,9 +4,9 @@ slug: sql-injection-attacks
 publishDate: 25 Sep 2004
 description: "There is also a proportion of people responding to these questions that give advice that opens up gaping security holes...'"
 tags:
-  - { name: "SQL", slug: sql }
-  - { name: ".NET", slug: net }
-  - { name: "SQL Injection Attack", slug: sql-injection-attack }
+  - { name: "SQL", slug: "sql" }
+  - { name: ".NET", slug: "net" }
+  - { name: "SQL Injection Attack", slug: "sql-injection-attack" }
 ---
 
 Every day I see messages on various forums asking for help with SQL. Nothing wrong with that. People want to understand how something works, or have a partial understanding but something is keeping them from completing their task. However, I frequently also see messages that have SQL statements being built in C# or VB.NET that are extremely susceptible to injection attack. Sometimes it is from the original poster and, while they really need to learn to defend their systems, that is fine as they are trying to learn. Nevertheless there is also a proportion of people responding to these questions that give advice that opens up gaping security holes in the original poster's system, if they follow that advice.

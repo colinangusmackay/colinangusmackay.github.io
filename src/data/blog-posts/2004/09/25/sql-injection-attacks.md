@@ -4,7 +4,7 @@ slug: sql-injection-attacks
 publishDate: 25 Sep 2004
 description: "There is also a proportion of people responding to these questions that give advice that opens up gaping security holes...'"
 tags:
-  - { name: "SQL", slug: SQL }
+  - { name: "SQL", slug: sql }
   - { name: ".NET", slug: net }
   - { name: "SQL Injection Attack", slug: sql-injection-attack }
 ---

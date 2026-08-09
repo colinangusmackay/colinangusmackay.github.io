@@ -8,7 +8,12 @@ import PostNav from '../components/PostNav.astro';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('posts')
-  const sorted = [...posts].sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf());
+  const sorted = [...posts].sort((a, b) => {
+    const dateDiff = new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf();
+    if (dateDiff !== 0) return dateDiff;
+    // Same-day posts: order alphabetically by id (newest-first overall, so reverse alphabetical here)
+    return b.id.localeCompare(a.id);
+  });
 
   return sorted.map((p, index) => ({
     params: { post: p.id },

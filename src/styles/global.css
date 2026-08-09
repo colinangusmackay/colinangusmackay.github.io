@@ -150,6 +150,7 @@ pre {
   border-radius: 8px !important;
   margin: 1.2em 0 !important;
   padding: 1.2em;
+  overflow-x: auto;
 }
 
 pre code {
@@ -190,23 +191,59 @@ table {
   font-family: var(--font-family-sans);
   font-size: 1.125em;
   margin: 2em 0;
+  overflow-x: auto;
 }
 
 th {
   border-bottom: 2px solid #cccccc;
   padding: 0.4em 0.8em;
   word-break: break-word;
+  min-width: 4ch;
+  max-width: 30ch;
 }
 
 td {
   padding: 0.4em 0.8em;
   word-break: break-word;
+  min-width: 4ch;
+  max-width: 30ch;
 }
 
 .container {
   margin: 0 auto;
   max-width: 42em;
   width: 100%;
+}
+
+/*
+ * Let code blocks and tables grow past the 42em reading column, up to the
+ * width of `main` (capped at 1400px, minus its 2em horizontal padding),
+ * so wide content doesn't need to horizontally scroll unless it still
+ * exceeds that width. They stay centered on the same axis as `.container`,
+ * and never shrink below the column's own width.
+ */
+.content pre {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  width: fit-content;
+  min-width: 100%;
+  max-width: min(calc(100vw - 4rem), calc(1400px - 4rem));
+}
+
+/*
+ * `width: max-content` (rather than `fit-content`, used for `pre` above)
+ * is required here: table auto-layout distributes width across columns
+ * proportionally, and `fit-content` on a table collapses that distribution
+ * so columns are squeezed toward their min-content width (individual
+ * characters wrapping onto their own line) instead of their natural size.
+ */
+.content table {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(calc(100vw - 4rem), calc(1400px - 4rem));
 }
 
 .content h1 {

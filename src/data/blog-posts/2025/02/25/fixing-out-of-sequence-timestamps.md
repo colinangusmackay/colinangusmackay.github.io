@@ -9,22 +9,14 @@ tags:
   - { name: "multi-threading", slug: multi-threading }
   - { name: "timestamps", slug: timestamps }
 ---
-<!-- TODO: convert this post's content to Markdown -->
+I maintain a [small open source project that helps test log message](https://github.com/Stravaig-Projects/Stravaig.Extensions.Logging.Diagnostics). Part of this is that each log message has a sequence number and timestamp attached to it. You should be able to sequence the logs by the sequence number or the timestamp and get the same sequence of logs, but on rare occasions this did not work.
 
-<!-- wp:paragraph -->
-<p>I maintain a <a href="https://github.com/Stravaig-Projects/Stravaig.Extensions.Logging.Diagnostics">small open source project that helps test log message</a>. Part of this is that each log message has a sequence number and timestamp attached to it. You should be able to sequence the logs by the sequence number or the timestamp and get the same sequence of logs, but on rare occasions this did not work.</p>
-<!-- /wp:paragraph -->
+I couldn't understand it because the `LogEntry` class assigns the sequence and timestamp in a locked section, so they should always be in step with each other.
 
-<!-- wp:paragraph -->
-<p>I couldn't understand it because the <code>LogEntry</code> class assigns the sequence and timestamp in a locked section, so they should always be in step with each other.</p>
-<!-- /wp:paragraph -->
+Here is a fragment of that class:
 
-<!-- wp:paragraph -->
-<p>Here is a fragment of that class:</p>
-<!-- /wp:paragraph -->
-
-<!-- wp:code -->
-<pre class="wp-block-code"><code>public class LogEntry
+```csharp
+public class LogEntry
 {
   private static int _sequence;
   private static readonly Lock SequenceSyncLock = new();
@@ -41,80 +33,54 @@ tags:
 
   public int Sequence { get; }
   public DateTime TimestampUtc { get; }
-}</code></pre>
-<!-- /wp:code -->
+}
+```
 
-<!-- wp:paragraph -->
-<p>Each new instance will get an ever increasing sequence number, and the timestamp comes from <code>DateTime.UtcNow</code> so it should always be incrementing. But somehow, that's not always the case. </p>
-<!-- /wp:paragraph -->
+Each new instance will get an ever increasing sequence number, and the timestamp comes from `DateTime.UtcNow` so it should always be incrementing. But somehow, that's not always the case.
 
-<!-- wp:paragraph -->
-<p>Why might the time be out of sequence?</p>
-<!-- /wp:paragraph -->
+Why might the time be out of sequence?
 
-<!-- wp:list -->
-<ul class="wp-block-list"><!-- wp:list-item -->
-<li><code>DateTime.UtcNow</code> relies on the system clock, which may be updated by the user, by a network time service, or there may be a clock skew in virtualised environments.</li>
-<!-- /wp:list-item -->
+- `DateTime.UtcNow` relies on the system clock, which may be updated by the user, by a network time service, or there may be a clock skew in virtualised environments.
+- In a multi-threaded environment, thread interruption or scheduling delays may make it appear to regress.
+- The resolution of the clock may not be accurate enough, so it doesn't tick forward by the next call.
 
-<!-- wp:list-item -->
-<li>In a multi-threaded environment, thread interruption or scheduling delays may make it appear to regress.</li>
-<!-- /wp:list-item -->
+For example, when I run the following code:
 
-<!-- wp:list-item -->
-<li>The resolution of the clock may not be accurate enough, so it doesn't tick forward by the next call.</li>
-<!-- /wp:list-item --></ul>
-<!-- /wp:list -->
+```csharp
+const int iterations = 5_000_000;
 
-<!-- wp:paragraph -->
-<p>For example, when I run the following code:</p>
-<!-- /wp:paragraph -->
-
-<!-- wp:code -->
-<pre class="wp-block-code"><code>const int <strong>iterations </strong>= 5_000_000;
-
-var times = new DateTime&#091;<strong>iterations</strong>];
-for (int i = 0; i &lt; <strong>iterations</strong>; i++)
+var times = new DateTime[iterations];
+for (int i = 0; i < iterations; i++)
 {
-    times&#091;i] = DateTime.UtcNow;
+    times[i] = DateTime.UtcNow;
 }
 
 int distinctTimes = times.Distinct().Count();
-Console.WriteLine($"{<strong>iterations</strong>} times generated, but only {distinctTimes} distinct times produced.");</code></pre>
-<!-- /wp:code -->
+Console.WriteLine($"{iterations} times generated, but only {distinctTimes} distinct times produced.");
+```
 
-<!-- wp:paragraph -->
-<p>Of the five million calls to <code>DateTime.UtcNow</code>, there are only around 140,000 distinct times produced. So at the very least it could look like it is standing still.</p>
-<!-- /wp:paragraph -->
+Of the five million calls to `DateTime.UtcNow`, there are only around 140,000 distinct times produced. So at the very least it could look like it is standing still.
 
-<!-- wp:paragraph -->
-<p>I can use <a href="https://github.com/shouldly/shouldly">Shouldly</a> to check that the array is ascending. But I do occasionally get an exception there. Adding the line:</p>
-<!-- /wp:paragraph -->
+I can use [Shouldly](https://github.com/shouldly/shouldly) to check that the array is ascending. But I do occasionally get an exception there. Adding the line:
 
-<!-- wp:code -->
-<pre class="wp-block-code"><code>times.ShouldBeInOrder(SortDirection.<strong>Ascending</strong>);</code></pre>
-<!-- /wp:code -->
+```csharp
+times.ShouldBeInOrder(SortDirection.Ascending);
+```
 
-<!-- wp:paragraph -->
-<p>produces the following message: </p>
-<!-- /wp:paragraph -->
+produces the following message:
 
-<!-- wp:code -->
-<pre class="wp-block-code"><code>times should be in ascending order but was not.
+```
+times should be in ascending order but was not.
 The first out-of-order item was found at index 2432937:
-25/02/2025 23:10:52</code></pre>
-<!-- /wp:code -->
+25/02/2025 23:10:52
+```
 
-<!-- wp:heading -->
-<h2 class="wp-block-heading">So, how do we fix this?</h2>
-<!-- /wp:heading -->
+## So, how do we fix this?
 
-<!-- wp:paragraph -->
-<p>We can ensure that timestamps are strictly increasing by using the clock's resolution against it. Since the resolution is typically around 0.5ms to 15ms depending on the system, and we know that there are <a href="https://learn.microsoft.com/en-us/dotnet/api/system.timespan.tickspermillisecond?view=net-9.0#field-value">10,000 ticks in a millisecond</a>, we know that even on the best system <code>DateTime.UtcNow</code> will jump forwards by at least 5000 ticks when it moves forward.</p>
-<!-- /wp:paragraph -->
+We can ensure that timestamps are strictly increasing by using the clock's resolution against it. Since the resolution is typically around 0.5ms to 15ms depending on the system, and we know that there are [10,000 ticks in a millisecond](https://learn.microsoft.com/en-us/dotnet/api/system.timespan.tickspermillisecond?view=net-9.0#field-value), we know that even on the best system `DateTime.UtcNow` will jump forwards by at least 5000 ticks when it moves forward.
 
-<!-- wp:code -->
-<pre class="wp-block-code"><code>public class LogEntry
+```csharp
+public class LogEntry
 {
   private static int _sequence;
   private static long _lastTimestampUtc;
@@ -134,13 +100,9 @@ The first out-of-order item was found at index 2432937:
 
   public int Sequence { get; }
   public DateTime TimestampUtc { get; }
-}</code></pre>
-<!-- /wp:code -->
+}
+```
 
-<!-- wp:paragraph -->
-<p>So, we now get the current time as ticks, we then compare to the last timestamp. If the clock has moved forward then we use that, if the clock has stayed steady or moved backwards, then the we use the last timestamp plus one tick as timestamp for the new object.</p>
-<!-- /wp:paragraph -->
+So, we now get the current time as ticks, we then compare to the last timestamp. If the clock has moved forward then we use that, if the clock has stayed steady or moved backwards, then the we use the last timestamp plus one tick as timestamp for the new object.
 
-<!-- wp:paragraph -->
-<p>Now all timestamps will move strictly forward in time only. We fake it when need to, by nudging it forward by a 100 nanoseconds (billionths of a second).</p>
-<!-- /wp:paragraph -->
+Now all timestamps will move strictly forward in time only. We fake it when need to, by nudging it forward by a 100 nanoseconds (billionths of a second).

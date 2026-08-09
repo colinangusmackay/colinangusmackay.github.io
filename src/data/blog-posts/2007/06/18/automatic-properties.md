@@ -24,7 +24,7 @@ public class Employee
 At first look this might seem more like a definition for an interface, but for the class keyword and the member visibility modifiers.
 However, this is actually a new feature where by the compiler will automatically fill in the member fields. This is useful for situations where nothing needs to be done when getting or setting values from the member fields. It means they can be constructed much more quickly as there is no need for tedious creating of private member fields then the public properties. All that is needed is one simple construct.
 It is also possible to reduce the visibility of the getter and setter independently. For example, in the above example you may wish to make `DateOfBirth` to be effectively read-only for all by the class that owns it. You can prefix the `set` keyword with the `private` visibility modifier.
-But what is the compiler actually producing? The following is the output from [Lutz Roeder's Reflector](https://www.red-gate.com/products/reflector/) for the DateOfBirth property:
+But what is the compiler actually producing? The following is the output from [Lutz Roeder's Reflector](https://www.red-gate.com/products/reflector/) for the `DateOfBirth` property:
 
 ```csharp
 [CompilerGenerated]
@@ -62,7 +62,7 @@ If the \<\> are removed the message changes to:
 |  |  |  |  |  |  |
 |----|----|----|----|----|----|
 | **\#** | **Error** | **File** | **Row** | **Col** | **Project** |
-| 1 | <span style="font-family:Arial;">'ConsoleApplication2.Employee' does not contain a definition for 'k\_\_AutomaticallyGeneratedPropertyField2' and no extension method 'k\_\_AutomaticallyGeneratedPropertyField2' accepting a first argument of type 'ConsoleApplication2.Employee' could be found (are you missing a using directive or an assembly reference?)</span> | ConsoleApplication2Employee.cs | 20 | 18 | ConsoleApplication2 |
+| 1 | 'ConsoleApplication2.Employee' does not contain a definition for 'k\_\_AutomaticallyGeneratedPropertyField2' and no extension method 'k\_\_AutomaticallyGeneratedPropertyField2' accepting a first argument of type 'ConsoleApplication2.Employee' could be found (are you missing a using directive or an assembly reference?) | ConsoleApplication2Employee.cs | 20 | 18 | ConsoleApplication2 |
 
 So, why go to all this trouble? Surely it isn't just to save a few key strokes?
 
@@ -75,4 +75,4 @@ In short, public fields and public properties, although they appear to look iden
 
 ### 🔄 Follow up - 9th August 2026
 
-When this post was originally created Refector was free, since then RedGate bought it and now charge for it. If you want an equivalent free product that does the same thing then have a look at [dotPeek](https://www.jetbrains.com/decompiler/) from JetBrains.
+When this post was originally created Reflector was free, since then RedGate bought it and now charge for it. If you want an equivalent free product that does the same thing then have a look at [dotPeek](https://www.jetbrains.com/decompiler/) from JetBrains.

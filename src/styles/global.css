@@ -213,14 +213,20 @@ td {
   margin: 0 auto;
   max-width: 42em;
   width: 100%;
+  /*
+   * Shared ceiling for content that's allowed to break out of the 42em
+   * reading column below: the width of `main` (capped at 1400px, minus
+   * its 2em horizontal padding).
+   */
+  --breakout-max-width: min(calc(100vw - 4rem), calc(1400px - 4rem));
 }
 
 /*
- * Let code blocks and tables grow past the 42em reading column, up to the
- * width of `main` (capped at 1400px, minus its 2em horizontal padding),
- * so wide content doesn't need to horizontally scroll unless it still
- * exceeds that width. They stay centered on the same axis as `.container`,
- * and never shrink below the column's own width.
+ * Let code blocks, tables and standalone images grow past the 42em reading
+ * column, up to `--breakout-max-width`, so wide content doesn't need to
+ * horizontally scroll (or, for images, shrink) unless it still exceeds
+ * that width. They stay centered on the same axis as `.container`, and
+ * never grow past their own natural/content size.
  */
 .content pre {
   position: relative;
@@ -228,7 +234,7 @@ td {
   transform: translateX(-50%);
   width: fit-content;
   min-width: 100%;
-  max-width: min(calc(100vw - 4rem), calc(1400px - 4rem));
+  max-width: var(--breakout-max-width);
 }
 
 /*
@@ -243,7 +249,21 @@ td {
   left: 50%;
   transform: translateX(-50%);
   width: max-content;
-  max-width: min(calc(100vw - 4rem), calc(1400px - 4rem));
+  max-width: var(--breakout-max-width);
+}
+
+/*
+ * Standalone images (an image alone on its own line, i.e. the sole child
+ * of its paragraph) shouldn't be shrunk to the reading column if their
+ * natural size — up to `--breakout-max-width` — would fit. Scoped to
+ * `:only-child` so images inline with surrounding text are unaffected.
+ */
+.content p > img:only-child {
+  display: block;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: var(--breakout-max-width);
 }
 
 .content h1 {

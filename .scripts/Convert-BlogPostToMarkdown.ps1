@@ -256,6 +256,29 @@ function ConvertTo-NormalizedPreBlocks {
     })
 }
 
+function ConvertTo-SimplifiedAnchors {
+    param([string]$Html)
+
+    # Pandoc's HTML reader falls back to preserving an <a> tag as raw HTML
+    # (instead of converting it to markdown link syntax) whenever it carries
+    # an attribute markdown can't represent, e.g. target="_blank", rel, or
+    # class - href and title are the only ones that survive the round trip.
+    # Strip everything else so pandoc emits a normal [text](href) link.
+    $pattern = '<a\b(?<pre>[^>]*?)\bhref\s*=\s*(?<q>"|'')(?<href>[^"'']*)\k<q>(?<post>[^>]*)>'
+    $evaluator = {
+        param($m)
+
+        $title = ''
+        $rest = $m.Groups['pre'].Value + ' ' + $m.Groups['post'].Value
+        if ($rest -match '(?i)\btitle\s*=\s*("[^"]*"|''[^'']*'')') {
+            $title = ' title=' + $Matches[1]
+        }
+
+        '<a href="' + $m.Groups['href'].Value + '"' + $title + '>'
+    }
+    [regex]::Replace($Html, $pattern, $evaluator, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+}
+
 function Invoke-PandocHtmlToMarkdown {
     param([string]$Html)
 
@@ -290,6 +313,7 @@ $issues = [System.Collections.Generic.List[string]]::new()
 $markdownBody = $null
 try {
     $normalizedHtml = ConvertTo-NormalizedPreBlocks -Html $linkResult.Body
+    $normalizedHtml = ConvertTo-SimplifiedAnchors -Html $normalizedHtml
     $markdownBody = Invoke-PandocHtmlToMarkdown -Html $normalizedHtml
 } catch {
     $issues.Add("conversion: $($_.Exception.Message)")

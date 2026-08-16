@@ -240,19 +240,81 @@ function Convert-BodyLinks {
     [pscustomobject]@{ Body = $newBody; Issues = $issues }
 }
 
+function Get-PreBlockLanguage {
+    param(
+        [string]$Attrs,
+        [string]$Content
+    )
+
+    # Some highlighter plugins (e.g. the classic "CopySourceAsHtml"/CSharpCode
+    # WLW plugin) name the language directly in the <pre> class - trust that
+    # over any guesswork.
+    if ($Attrs -match '(?i)class\s*=\s*(?<q>"|'')(?<class>[^"'']*)\k<q>') {
+        $class = $Matches['class']
+        if ($class -match '(?i)\bcsharpcode\b') { return 'csharp' }
+        if ($class -match '(?i)\bvbcode\b') { return 'vb' }
+        if ($class -match '(?i)\bsqlcode\b') { return 'sql' }
+    }
+
+    # Otherwise only guess a language for blocks that actually carry
+    # syntax-highlighting markup (span tags) - a plain <pre> with no spans is
+    # just as likely to be sample output or an XML snippet as it is source
+    # code, so leave those untagged rather than mislabeling them.
+    if ($Content -notmatch '<span\b') { return $null }
+
+    if ($Content -match '(?im)\bEnd\s+(Sub|Function|Class|Module|If)\b|^\s*Dim\s+\w+\s+As\b|^\s*(Public|Private|Protected|Friend)\s+(Sub|Function|Module)\b') {
+        return 'vb'
+    }
+    if ($Content -match '(?i)\b(SELECT\s+.+?\s+FROM|INSERT\s+INTO|UPDATE\s+.+?\s+SET|DELETE\s+FROM|CREATE\s+(TABLE|PROCEDURE|VIEW))\b') {
+        return 'sql'
+    }
+
+    # This blog's highlighted snippets are overwhelmingly C#, and the classic
+    # VS "paste as code" color scheme (blue/teal/maroon) doesn't distinguish
+    # language on its own, so fall back to the blog's dominant language.
+    return 'csharp'
+}
+
 function ConvertTo-NormalizedPreBlocks {
     param([string]$Html)
 
     # WordPress content commonly uses bare <pre>...</pre> (no nested <code>) for
-    # code samples. Pandoc's HTML reader only recognizes a <pre> as a code block
-    # when it wraps a <code> element with at least one attribute (otherwise it's
-    # read as ordinary prose, losing all indentation and escaping underscores as
-    # if they were markdown italics). Wrap bare <pre> content in <code> with a
-    # harmless marker attribute so pandoc emits a fenced code block for it.
+    # code samples, sometimes with per-token <span> highlighting. Pandoc's HTML
+    # reader only recognizes a <pre> as a code block when it wraps a <code>
+    # element with at least one attribute (otherwise it's read as ordinary
+    # prose/raw HTML - losing indentation, leaking <span> tags into the output
+    # verbatim, and escaping underscores as if they were markdown italics).
+    # Wrap bare <pre> content in <code>, tagging it with the detected language
+    # (so the fenced block keeps syntax highlighting on the site) or a harmless
+    # marker attribute when no language can be determined.
     $pattern = '(?is)<pre\b(?<attrs>[^>]*)>(?!\s*<code\b)(?<content>.*?)</pre>'
     [regex]::Replace($Html, $pattern, {
         param($m)
-        '<pre' + $m.Groups['attrs'].Value + '><code data-pandoc-force-fence="1">' + $m.Groups['content'].Value + '</code></pre>'
+
+        $attrs = $m.Groups['attrs'].Value
+        # Browsers ignore a single leading line feed right after <pre>; mirror
+        # that so a source newline doesn't become a stray blank line in the
+        # fenced block.
+        $content = $m.Groups['content'].Value -replace '^\r?\n', ''
+
+        $lang = Get-PreBlockLanguage -Attrs $attrs -Content $content
+
+        # Pandoc's HTML reader takes the fenced-block's language from a
+        # "language-*" class on the outer <pre> (not the inner <code>) when
+        # both are present, so the class has to go there - merging with the
+        # <pre>'s own class attribute (e.g. class="code") if it has one.
+        if ($lang) {
+            if ($attrs -match '(?i)class\s*=\s*("|'')') {
+                $attrs = [regex]::Replace($attrs, '(?i)class\s*=\s*(?<q>"|'')(?<class>[^"'']*)\k<q>', {
+                    param($cm)
+                    'class=' + $cm.Groups['q'].Value + ($cm.Groups['class'].Value + ' language-' + $lang).Trim() + $cm.Groups['q'].Value
+                })
+            } else {
+                $attrs = $attrs + ' class="language-' + $lang + '"'
+            }
+        }
+
+        '<pre' + $attrs + '><code data-pandoc-force-fence="1">' + $content + '</code></pre>'
     })
 }
 
@@ -292,7 +354,10 @@ function Invoke-PandocHtmlToMarkdown {
             $stderrText = Get-Content -Path $tempErr.FullName -Raw
             throw "pandoc exited with code ${exitCode}: $stderrText"
         }
-        return ($stdoutLines -join "`n")
+        # Pandoc writes fenced code blocks as "``` lang" (space before the
+        # language); this repo's existing posts use "```lang" (no space).
+        $markdown = ($stdoutLines -join "`n")
+        return ($markdown -replace '(?m)^``` (\S+)$', '```$1')
     } finally {
         Remove-Item -Path $tempIn.FullName, $tempErr.FullName -ErrorAction SilentlyContinue
     }

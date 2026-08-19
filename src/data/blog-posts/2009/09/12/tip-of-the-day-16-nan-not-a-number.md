@@ -1,8 +1,8 @@
 ---
-title: "Tip of the Day #16: NaN (Not a Number)"
+title: "Tip of the Day: NaN (Not a Number)"
 slug: tip-of-the-day-16-nan-not-a-number
 publishDate: 12 Sep 2009
-description: "The Issue If you want to detect if a double (System.Double) or float (System.Single) is ?not a number? or NaN you cannot use something like this: if (myDouble..."
+description: "The Issue If you want to detect if a double (System.Double) or float (System.Single) is 'not a number' or NaN you cannot use something like this: if (myDouble..."
 tags:
   - { name: ".NET", slug: net }
   - { name: "C#", slug: c }

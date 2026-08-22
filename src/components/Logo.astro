@@ -1,16 +1,73 @@
 <style>
-  img {
+  .logo-wrap {
+    position: relative;
+    width: 75px;
+    height: 50px;
+    display: block;
+  }
+
+  .logo-wrap img {
+    position: absolute;
+    inset: 0;
     display: block;
     width: 75px;
+    height: 50px;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+  }
+
+  .logo-wrap img.visible {
+    opacity: 1;
   }
 
   @media screen and (max-width: 520px) {
-    img {
+    .logo-wrap {
       display: none;
     }
   }
 </style>
 
 <a href="/">
-  <img alt="Blog Logo" src="/assets/pride.webp" width="75" height="50" />
+  <span class="logo-wrap">
+    <img id="logo-img-a" class="visible" alt="Blog Logo" src="/assets/badges/pride.webp" width="75" height="50" />
+    <img id="logo-img-b" alt="Blog Logo" src="/assets/badges/pride.webp" width="75" height="50" />
+  </span>
 </a>
+
+<script>
+  const urlBase = "/assets/badges/";
+  const logoImages = [
+    "pride.webp",
+    "forth-bridge.webp",
+    "saltire-wind.webp",
+    "ben-a'an-twilight.webp",
+    "core-memory.webp"];
+  const transitionDelay = 30;
+  const jitter = 10;
+
+  const imgA = document.getElementById("logo-img-a") as HTMLImageElement | null;
+  const imgB = document.getElementById("logo-img-b") as HTMLImageElement | null;
+
+  if (imgA && imgB) {
+    let front = imgA;
+    let back = imgB;
+
+    function scheduleNextLogoChange() {
+      const delay = (transitionDelay + (Math.random() * jitter * 2 - jitter)) * 1000;
+      setTimeout(() => {
+        const remaining = logoImages.filter((src) => !front.src.endsWith(src));
+        const next = remaining[Math.floor(Math.random() * remaining.length)];
+
+        back.onload = () => {
+          back.classList.add("visible");
+          front.classList.remove("visible");
+          [front, back] = [back, front];
+          scheduleNextLogoChange();
+        };
+        back.src = urlBase + next;
+      }, delay);
+    }
+
+    scheduleNextLogoChange();
+  }
+</script>

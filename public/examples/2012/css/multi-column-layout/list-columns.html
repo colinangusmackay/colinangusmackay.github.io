@@ -1,0 +1,100 @@
+<html>
+  <head>
+  <title>Example of CSS Columns - List of Cities</title>
+    <style>
+      ul.exampleList
+      {
+        column-width: 200px;
+        -moz-column-width: 200px;
+        -webkit-column-width: 200px;
+      }
+      
+      .exampleListApplied.Not
+      {
+          display:none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Example of CSS Columns</h1>
+    <p>This shows an example of turning a list in to multiple columns 
+    that run top-to-bottom then left-to-right.</p>
+    <p>The CSS needed is:</p>
+    <pre>
+ul.exampleList
+{
+  column-width: 200px;
+  -moz-column-width: 200px;
+  -webkit-column-width: 200px;
+}
+</pre>
+    <p>
+        <input type="button" value="Toggle" id="toggleButton"/>
+        <span class="exampleListApplied">CSS class 'exampleList' applied.</span>
+        <span class="exampleListApplied Not">CSS class 'exampleList' not applied.</span>
+    </p>
+      <ul class="exampleList">
+        <li>Adelaide</li>
+        <li>Amsterdam</li>
+        <li>Auckland</li>
+        <li>Barcelona</li>
+        <li>Berlin</li>
+        <li>Bern</li>
+        <li>Boston</li>
+        <li>Brisbane</li>
+        <li>Brussels</li>
+        <li>Calgary</li>
+        <li>Canberra</li>
+        <li>Chicago</li>
+        <li>Copenhagen</li>
+        <li>Dublin</li>
+        <li>Düsseldorf</li>
+        <li>Frankfurt</li>
+        <li>Geneva</li>
+        <li>Hamburg</li>
+        <li>Helsinki</li>
+        <li>Honolulu</li>
+        <li>Kobe</li>
+        <li>Lisbon</li>
+        <li>London</li>
+        <li>Luxembourg</li>
+        <li>Lyon</li>
+        <li>Madrid</li>
+        <li>Melbourne</li>
+        <li>Milan</li>
+        <li>Montreal</li>
+        <li>Munich</li>
+        <li>New York City</li>
+        <li>Nürnberg</li>
+        <li>Oslo</li>
+        <li>Ottawa</li>
+        <li>Paris</li>
+        <li>Perth</li>
+        <li>Portland</li>
+        <li>San Francisco</li>
+        <li>Seattle</li>
+        <li>Singapore</li>
+        <li>Stockholm</li>
+        <li>Stuttgart</li>
+        <li>Sydney</li>
+        <li>Tokyo</li>
+        <li>Toronto</li>
+        <li>Vancouver</li>
+        <li>Vienna</li>
+        <li>Washington DC</li>
+        <li>Wellington</li>
+        <li>Yokohama</li>
+        <li>Zurich</li>
+      </ul>
+      <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+      <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+      <script type="text/javascript">
+          $(function () {
+              $('#toggleButton').click(function () {
+                  $('ul').toggleClass('exampleList');
+                  $('.exampleListApplied').toggleClass('Not');
+              });
+          });
+          </script>
+  </body>
+</html>

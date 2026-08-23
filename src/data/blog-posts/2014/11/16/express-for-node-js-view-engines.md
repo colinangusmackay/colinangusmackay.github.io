@@ -193,4 +193,4 @@ The `views/helloworld.ejs` file looks like this:
 
 And twitter bootstrap was installed into the `public` directory. The project structure now looks like this:
 
-<img src="/assets/blog/2014-11-16-express-for-node-js-view-engines-1.webp" style="float:none;margin-left:auto;display:block;margin-right:auto;" />
+![](/assets/blog/2014-11-16-express-for-node-js-view-engines-1.webp)

@@ -1,0 +1,96 @@
+<html>
+    <head>
+        <title>Geolocation Demo</title>
+        <style>
+            body {
+                font-family: "Verdana", sans-serif;
+            }
+            .result {
+                font-weight: bold;
+            }
+            .errorMessage {
+                font-weight: bold;
+                color: red;   
+            }
+            a.disabled {
+                text-decoration: line-through;
+                color: silver;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Geolocation demo</h1>
+        <p>This demo is purely client side javascript. If you do not have location services turned on for your browser it will not work.</p>
+
+        <fieldset>
+            <legend>Demo</legend>
+            <div>
+                <input type="button" id="getLocation" value="Get Location"/>
+            </div>
+            <div id="errorMessage" class="errorMessage"></div>
+            <div>
+                <p>Lat: <span class="result" id="latitude"></span></p>
+                <p>Long: <span class="result" id="longitude"></span></p>
+                <p>Accuracy: <span class="result" id="accuracy"></span>m</p>
+                <a id="displayMap" class="result disabled" target="_blank">See this on Google Maps</a>.
+            </div>
+        </fieldset>
+
+        
+        <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.3.min.js"></script>
+        <script type="text/javascript">
+            $(function() {
+                $("#getLocation").click(clickGetLocation);
+                resetResults();
+                
+
+                function clickGetLocation() {
+                    resetResults();
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+                    } else {
+                        displayErrorMessage("The browser does not support the Geolocation API.");
+                    }
+                }
+
+                function resetResults() {
+                    $("#errorMessage").html("");
+                    $("#latitude").html("");
+                    $("#longitude").html("");
+                    $("#accuracy").html("");
+                    $("#displayMap").removeAttr("href");
+                    $("#displayMap").addClass("disabled");
+                }
+
+                function successCallback(position) {
+                    $("#latitude").html(position.coords.latitude);
+                    $("#longitude").html(position.coords.longitude);
+                    $("#accuracy").html(position.coords.accuracy);
+                    $("#displayMap").attr("href", "http://maps.google.com/?q=" + position.coords.latitude + "," + position.coords.longitude);
+                    $("#displayMap").removeClass("disabled");
+                }
+                
+                function errorCallback(error) {
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            displayErrorMessage("The request was denied. If a message seeking persmission was not displayed then check your browser settings.");
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            displayErrorMessage("The position of the device could not be determined. For instance, one or more of the location providers used in the location acquisition process reported an internal error that caused the process to fail entirely.");
+                            break;
+                        case error.TIMEOUT:
+                            displayErrorMessage("The request to get user location timed out before the operation could complete.");
+                            break;
+                        case error.UNKNOWN_ERROR:
+                            displayErrorMessage("Something unexpected happened.");
+                            break;
+                    }
+                }
+
+                function displayErrorMessage(message) {
+                    $("#errorMessage").html(message);
+                }
+            });
+        </script>
+    </body>
+</html>

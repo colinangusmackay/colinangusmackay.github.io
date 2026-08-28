@@ -26,7 +26,8 @@ At this point the connection string looks like this:
 `metadata=res://*/Products.csdl|res://*/Products.ssdl|`\
 `res://*/Products.msl;provider=System.Data.SqlClient;`\
 `provider connection string=&quot;data source=(local);`\
-`initial catalog=AdventureWorks;integrated security=True;multipleactiveresultsets=True;`\
+`initial catalog=AdventureWorks;integrated security=True;`\
+`multipleactiveresultsets=True;`\
 `App=EntityFramework&quot;`
 
 As you can see it makes reference to the Products metadata in the calling assembly (that’s what the \* means) which is split into the three resources (CSDL, SSDL & MSL) .
@@ -38,7 +39,8 @@ If a ModelEntities folder is created in the DataAccess project and the Products.
 `metadata=res://*/`**`EntityModel.`**`Products.csdl|`\
 `res://*/`**`EntityModel.`**`Products.ssdl|`\
 `res://*/`**`EntityModel.`**`Products.msl;`\
-`provider=System.Data.SqlClient;provider connection string=&quot;data source=(local);initial catalog=`\
+`provider=System.Data.SqlClient;`\
+`provider connection string=&quot;data source=(local);initial catalog=`\
 `AdventureWorks;integrated security=True;`\
 `multipleactiveresultsets=True;App=EntityFramework&quot;`
 

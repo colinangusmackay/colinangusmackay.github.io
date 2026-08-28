@@ -5,8 +5,8 @@ publishDate: 16 Nov 2014
 description: "In the last post, Express Hello World , I talked about getting started with an Express application in Node.js. In it, the output was rendered by writing HTML..."
 tags:
   - { name: "ejs", slug: ejs }
-  - { name: "express", slug: express }
-  - { name: "express-ejs-layouts", slug: express-ejs-layouts }
+  - { name: "Express", slug: express }
+  - { name: "Express EJS layouts", slug: express-ejs-layouts }
   - { name: "node.js", slug: node-js }
 ---
 In the last post, <a href="/2014/11/15/express-for-node-js-walk-through-hello-world/" target="_blank">Express Hello World</a>, I talked about getting started with an Express application in Node.js. In it, the output was rendered by writing HTML directly. In most situations that is undesirable and some sort of view or template engine is better suited to rendering the output.

@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
-import BaseLayout from '../../../layouts/BaseLayout.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const posts = await getCollection('posts')
 const tagMap = new Map();
@@ -18,25 +18,57 @@ const tags = Array.from(tagMap.entries())
   .map(([slug, { name, count }]) => ({ slug, name, count }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
+const groupMap = new Map<string, typeof tags>();
+
+for (const tag of tags) {
+  const firstChar = tag.name.charAt(0).toUpperCase();
+  const letter = /[A-Z]/.test(firstChar) ? firstChar : '#';
+  if (!groupMap.has(letter)) {
+    groupMap.set(letter, []);
+  }
+  groupMap.get(letter)!.push(tag);
+}
+
+const groups = Array.from(groupMap.entries())
+  .map(([letter, tags]) => ({ letter, tags }))
+  .sort((a, b) => a.letter.localeCompare(b.letter));
+
 const title = 'Tags';
 const description = 'Browse all blog post tags.';
-const permalink = `${Astro.site.href}blog/tags`;
+const permalink = `${Astro.site.href}tag`;
 ---
 
 <BaseLayout title={title} description={description} permalink={permalink} current="blog">
   <div class="container">
     <h1>Tags</h1>
-    <ul class="tag-index">
-      {tags.map((tag) => (
-        <li>
-          <a href={`/blog/tags/${tag.slug}`}>{tag.name}</a> <span class="tag-count">({tag.count})</span>
-        </li>
-      ))}
-    </ul>
+    {groups.map((group) => (
+      <section class="tag-group">
+        <h2 class="tag-group-letter">{group.letter}</h2>
+        <ul class="tag-index">
+          {group.tags.map((tag) => (
+            <li>
+              <a href={`/tag/${tag.slug}`}>{tag.name}</a> <span class="tag-count">({tag.count})</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
   </div>
 </BaseLayout>
 
 <style>
+  .tag-group {
+    margin: 1.5em 0;
+  }
+
+  .tag-group-letter {
+    margin: 0 0 0.4em;
+    padding-bottom: 0.1em;
+    border-bottom: 1px solid var(--text-secondary);
+    font-family: var(--font-family-sans);
+    text-transform: uppercase;
+  }
+
   .tag-index {
     list-style: none;
     margin: 0;

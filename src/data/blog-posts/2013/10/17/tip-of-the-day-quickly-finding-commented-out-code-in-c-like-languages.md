@@ -23,7 +23,7 @@ Then tell it to "Find all" and you'll be presented with a list of lines of code 
 
 ### Caveats
 
-It is not fully proof. It does not find code commented out in the style:
+It is not fool proof. It does not find code commented out in the style:
 
 ```csharp
 /*

@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content'
-import BaseLayout from '../../../layouts/BaseLayout.astro';
-import PostList from '../../../components/PostList.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostList from '../../components/PostList.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts')
@@ -28,13 +28,13 @@ export async function getStaticPaths() {
 const { tagName, posts } = Astro.props;
 const title = `Posts tagged "${tagName}"`;
 const description = `All blog posts tagged ${tagName}.`;
-const permalink = `${Astro.site.href}blog/tags/${Astro.params.tag}`;
+const permalink = `${Astro.site.href}tag/${Astro.params.tag}`;
 ---
 
 <BaseLayout title={title} description={description} permalink={permalink} current="blog">
   <div class="container">
     <h1>Tag: {tagName}</h1>
-    <p><a href="/blog/tags">All tags</a></p>
+    <p><a href="/tag">All tags</a></p>
     <PostList posts={posts} />
   </div>
 </BaseLayout>

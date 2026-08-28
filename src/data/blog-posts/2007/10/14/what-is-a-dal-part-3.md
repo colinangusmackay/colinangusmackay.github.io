@@ -5,13 +5,12 @@ publishDate: 14 Oct 2007
 description: "In this continuation of my series on the DAL I'm going to show the ability to create several DALs and have a Factory class instantiate the correct DAL based on..."
 tags:
   - { name: ".NET", slug: net }
-  - { name: "ADO.NETsql", slug: ado-netsql }
+  - { name: "ADO.NET", slug: ado-net }
+  - { name: "sql", slug: sql }
   - { name: "C#", slug: c }
   - { name: "Database", slug: database }
   - { name: "design patterns", slug: design-patterns }
 ---
-<!-- ISSUE: link (http://blog.colinmackay.net/archive/2007/08/28/336.aspx): status 404 -->
-<!-- ISSUE: link (http://blog.colinmackay.net/archive/2007/09/05/393.aspx): status 404 -->
 
 In this continuation of my series on the DAL I'm going to show the ability to create several DALs and have a Factory class instantiate the correct DAL based on settings in a config file.
 

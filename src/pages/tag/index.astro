@@ -41,12 +41,25 @@ const permalink = `${Astro.site.href}tag`;
 <BaseLayout title={title} description={description} permalink={permalink} current="blog">
   <div class="container">
     <h1>Tags</h1>
+    <div class="tag-filter">
+      <label class="visually-hidden" for="tag-filter-input">Filter tags</label>
+      <input
+        type="search"
+        id="tag-filter-input"
+        class="tag-filter-input"
+        placeholder="Filter tags&hellip;"
+        autocomplete="off"
+        aria-describedby="tag-filter-status"
+      />
+    </div>
+    <p id="tag-filter-status" class="tag-filter-status visually-hidden" role="status" aria-live="polite"></p>
+    <p class="tag-filter-empty" hidden>No tags match your filter.</p>
     {groups.map((group) => (
-      <section class="tag-group">
+      <section class="tag-group" data-tag-group>
         <h2 class="tag-group-letter">{group.letter}</h2>
         <ul class="tag-index">
           {group.tags.map((tag) => (
-            <li>
+            <li data-tag-name={tag.name.toLowerCase()}>
               <a href={`/tag/${tag.slug}`}>{tag.name}</a> <span class="tag-count">({tag.count})</span>
             </li>
           ))}
@@ -54,9 +67,91 @@ const permalink = `${Astro.site.href}tag`;
       </section>
     ))}
   </div>
+
+  <script>
+    const input = document.getElementById('tag-filter-input') as HTMLInputElement | null;
+    const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-tag-group]'));
+    const emptyMessage = document.querySelector<HTMLElement>('.tag-filter-empty');
+    const status = document.getElementById('tag-filter-status');
+
+    if (input) {
+      const applyFilter = () => {
+        const query = input.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        for (const group of groups) {
+          let groupHasMatch = false;
+
+          for (const item of group.querySelectorAll<HTMLElement>('li[data-tag-name]')) {
+            const name = item.dataset.tagName ?? '';
+            const match = query === '' || name.includes(query);
+            item.hidden = !match;
+            if (match) {
+              groupHasMatch = true;
+              visibleCount++;
+            }
+          }
+
+          group.hidden = !groupHasMatch;
+        }
+
+        if (emptyMessage) {
+          emptyMessage.hidden = visibleCount !== 0;
+        }
+
+        if (status) {
+          status.textContent = query === ''
+            ? ''
+            : `${visibleCount} tag${visibleCount === 1 ? '' : 's'} match "${input.value.trim()}".`;
+        }
+      };
+
+      input.addEventListener('input', applyFilter);
+      applyFilter();
+    }
+  </script>
 </BaseLayout>
 
 <style>
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .tag-filter {
+    margin: 1em 0 0.5em;
+  }
+
+  .tag-filter-input {
+    width: 100%;
+    max-width: 24em;
+    padding: 0.5em 0.75em;
+    font-family: var(--font-family-sans);
+    font-size: 1em;
+    color: var(--text-main);
+    background-color: var(--background-body);
+    border: 1px solid var(--text-secondary);
+    border-radius: 4px;
+  }
+
+  .tag-filter-input:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+  }
+
+  .tag-filter-empty {
+    font-family: var(--font-family-sans);
+    color: var(--text-secondary);
+  }
+
   .tag-group {
     margin: 1.5em 0;
   }
@@ -83,6 +178,11 @@ const permalink = `${Astro.site.href}tag`;
     display: flex;
     align-items: center;
     gap: 0.4em;
+  }
+
+  .tag-group[hidden],
+  .tag-index li[hidden] {
+    display: none;
   }
 
   .tag-index li::before {

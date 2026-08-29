@@ -2,16 +2,30 @@
 const { posts } = Astro.props;
 ---
 
+<div class="post-filter">
+  <label class="visually-hidden" for="post-filter-input">Filter posts</label>
+  <input
+    type="search"
+    id="post-filter-input"
+    class="post-filter-input"
+    placeholder="Filter posts&hellip;"
+    autocomplete="off"
+    aria-describedby="post-filter-status"
+  />
+</div>
+<p id="post-filter-status" class="post-filter-status visually-hidden" role="status" aria-live="polite"></p>
+<p class="post-filter-empty" hidden>No posts match your filter.</p>
+
 {posts.map((post, index) => {
   const href = `/${post.id}/`;
   return (
-    <div>
+    <div class="post-list-item" data-post>
       { index !== 0 && <hr /> }
       <div class="post-item">
         <h2>
-          <a href={href}>{post.data.title}</a>
+          <a href={href} data-post-title>{post.data.title}</a>
         </h2>
-        <p>{post.data.description}</p>
+        <p data-post-summary>{post.data.description}</p>
         <div class="post-item-footer">
           <span class="post-item-date">— {post.data.publishDate}</span>
         </div>
@@ -20,7 +34,160 @@ const { posts } = Astro.props;
   )
 })}
 
+<script>
+  const input = document.getElementById('post-filter-input') as HTMLInputElement | null;
+  const items = Array.from(document.querySelectorAll<HTMLElement>('[data-post]'));
+  const emptyMessage = document.querySelector<HTMLElement>('.post-filter-empty');
+  const status = document.getElementById('post-filter-status');
+
+  type PostEntry = {
+    wrapper: HTMLElement;
+    hr: HTMLElement | null;
+    titleEl: HTMLElement | null;
+    summaryEl: HTMLElement | null;
+    titleText: string;
+    summaryText: string;
+    haystack: string;
+  };
+
+  const escapeHtml = (value: string) =>
+    value.replace(/[&<>"]/g, (char) => {
+      switch (char) {
+        case '&': return '&amp;';
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        default: return '&quot;';
+      }
+    });
+
+  const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  const highlight = (text: string, terms: string[]) => {
+    if (terms.length === 0) {
+      return escapeHtml(text);
+    }
+
+    const pattern = new RegExp(`(${terms.map(escapeRegExp).join('|')})`, 'gi');
+    let result = '';
+    let lastIndex = 0;
+
+    for (const match of text.matchAll(pattern)) {
+      const start = match.index ?? 0;
+      result += escapeHtml(text.slice(lastIndex, start));
+      result += `<mark>${escapeHtml(match[0])}</mark>`;
+      lastIndex = start + match[0].length;
+    }
+
+    result += escapeHtml(text.slice(lastIndex));
+    return result;
+  };
+
+  if (input && items.length > 0) {
+    const entries: PostEntry[] = items.map((wrapper) => {
+      const titleEl = wrapper.querySelector<HTMLElement>('[data-post-title]');
+      const summaryEl = wrapper.querySelector<HTMLElement>('[data-post-summary]');
+      const titleText = titleEl?.textContent ?? '';
+      const summaryText = summaryEl?.textContent ?? '';
+
+      return {
+        wrapper,
+        hr: wrapper.querySelector<HTMLElement>('hr'),
+        titleEl,
+        summaryEl,
+        titleText,
+        summaryText,
+        haystack: `${titleText} ${summaryText}`.toLowerCase(),
+      };
+    });
+
+    const applyFilter = () => {
+      const raw = input.value.trim();
+      const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
+      let visibleCount = 0;
+      let firstVisible = true;
+
+      for (const entry of entries) {
+        const match = terms.length === 0 || terms.every((term) => entry.haystack.includes(term));
+        entry.wrapper.hidden = !match;
+
+        if (entry.hr) {
+          entry.hr.hidden = !match || firstVisible;
+        }
+
+        if (entry.titleEl) {
+          entry.titleEl.innerHTML = match ? highlight(entry.titleText, terms) : escapeHtml(entry.titleText);
+        }
+        if (entry.summaryEl) {
+          entry.summaryEl.innerHTML = match ? highlight(entry.summaryText, terms) : escapeHtml(entry.summaryText);
+        }
+
+        if (match) {
+          firstVisible = false;
+          visibleCount++;
+        }
+      }
+
+      if (emptyMessage) {
+        emptyMessage.hidden = visibleCount !== 0;
+      }
+
+      if (status) {
+        status.textContent = raw === ''
+          ? ''
+          : `${visibleCount} post${visibleCount === 1 ? '' : 's'} match "${raw}".`;
+      }
+    };
+
+    input.addEventListener('input', applyFilter);
+    applyFilter();
+  }
+</script>
+
 <style>
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .post-filter {
+    margin: 1em 0 0.5em;
+  }
+
+  .post-filter-input {
+    width: 100%;
+    max-width: 24em;
+    padding: 0.5em 0.75em;
+    font-family: var(--font-family-sans);
+    font-size: 1em;
+    color: var(--text-main);
+    background-color: var(--background-body);
+    border: 1px solid var(--text-secondary);
+    border-radius: 4px;
+  }
+
+  .post-filter-input:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+  }
+
+  .post-filter-empty {
+    font-family: var(--font-family-sans);
+    color: var(--text-secondary);
+  }
+
+  .post-list-item[hidden],
+  .post-list-item hr[hidden] {
+    display: none;
+  }
+
   h2,
   .post-item-footer {
     font-family: var(--font-family-sans);
@@ -37,6 +204,13 @@ const { posts } = Astro.props;
   .post-item p {
     font-size: 1rem;
     margin: 0.5em 0;
+  }
+
+  .post-item :global(mark) {
+    background-color: var(--primary-color);
+    color: var(--background-body);
+    border-radius: 2px;
+    padding: 0 0.1em;
   }
 
   hr {

@@ -1,5 +1,18 @@
 ---
 const { posts } = Astro.props;
+
+type Post = (typeof posts)[number];
+type YearGroup = { year: number; posts: Post[] };
+const yearGroups: YearGroup[] = [];
+for (const post of posts) {
+  const year = new Date(post.data.publishDate).getFullYear();
+  const current = yearGroups[yearGroups.length - 1];
+  if (current && current.year === year) {
+    current.posts.push(post);
+  } else {
+    yearGroups.push({ year, posts: [post] });
+  }
+}
 ---
 
 <div class="post-filter">
@@ -16,32 +29,39 @@ const { posts } = Astro.props;
 <p id="post-filter-status" class="post-filter-status visually-hidden" role="status" aria-live="polite"></p>
 <p class="post-filter-empty" hidden>No posts match your filter.</p>
 
-{posts.map((post, index) => {
-  const href = `/${post.id}/`;
-  return (
-    <div class="post-list-item" data-post>
-      { index !== 0 && <hr /> }
-      <div class="post-item">
-        <h2>
-          <a href={href} data-post-title>{post.data.title}</a>
-        </h2>
-        <p data-post-summary>{post.data.description}</p>
-        <div class="post-item-footer">
-          <span class="post-item-date">— {post.data.publishDate}</span>
+{yearGroups.map((group) => (
+  <section class="post-year" data-post-year>
+    { yearGroups.indexOf(group) !== 0 && <hr /> }
+    <h2 class="post-year-heading">{group.year}</h2>
+    {group.posts.map((post, index) => {
+      const href = `/${post.id}/`;
+      return (
+        <div class="post-list-item" data-post>
+          <div class="post-item">
+            <h3>
+              <a href={href} data-post-title>{post.data.title}</a>
+            </h3>
+            <p data-post-summary>{post.data.description}</p>
+            <div class="post-item-footer">
+              <span class="post-item-date">— {post.data.publishDate}</span>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  )
-})}
+      )
+    })}
+  </section>
+))}
 
 <script>
   const input = document.getElementById('post-filter-input') as HTMLInputElement | null;
   const items = Array.from(document.querySelectorAll<HTMLElement>('[data-post]'));
+  const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-post-year]'));
   const emptyMessage = document.querySelector<HTMLElement>('.post-filter-empty');
   const status = document.getElementById('post-filter-status');
 
   type PostEntry = {
     wrapper: HTMLElement;
+    section: HTMLElement | null;
     hr: HTMLElement | null;
     titleEl: HTMLElement | null;
     summaryEl: HTMLElement | null;
@@ -91,6 +111,7 @@ const { posts } = Astro.props;
 
       return {
         wrapper,
+        section: wrapper.closest<HTMLElement>('[data-post-year]'),
         hr: wrapper.querySelector<HTMLElement>('hr'),
         titleEl,
         summaryEl,
@@ -104,14 +125,20 @@ const { posts } = Astro.props;
       const raw = input.value.trim();
       const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
       let visibleCount = 0;
-      let firstVisible = true;
+      let currentSection: HTMLElement | null = null;
+      let firstVisibleInSection = true;
 
       for (const entry of entries) {
+        if (entry.section !== currentSection) {
+          currentSection = entry.section;
+          firstVisibleInSection = true;
+        }
+
         const match = terms.length === 0 || terms.every((term) => entry.haystack.includes(term));
         entry.wrapper.hidden = !match;
 
         if (entry.hr) {
-          entry.hr.hidden = !match || firstVisible;
+          entry.hr.hidden = !match || firstVisibleInSection;
         }
 
         if (entry.titleEl) {
@@ -122,9 +149,16 @@ const { posts } = Astro.props;
         }
 
         if (match) {
-          firstVisible = false;
+          firstVisibleInSection = false;
           visibleCount++;
         }
+      }
+
+      for (const section of sections) {
+        const hasVisiblePost = Array.from(
+          section.querySelectorAll<HTMLElement>('[data-post]'),
+        ).some((post) => !post.hidden);
+        section.hidden = !hasVisiblePost;
       }
 
       if (emptyMessage) {
@@ -183,12 +217,24 @@ const { posts } = Astro.props;
     color: var(--text-secondary);
   }
 
+  .post-year[hidden],
   .post-list-item[hidden],
   .post-list-item hr[hidden] {
     display: none;
   }
 
-  h2,
+  .post-year-heading {
+    font-size: 1.4em;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--text-secondary);
+    padding-bottom: 0.2em;
+  }
+
+  .post-year:first-of-type .post-year-heading {
+    margin-top: 0.5em;
+  }
+
+  .post-year-heading,
   .post-item-footer {
     font-family: var(--font-family-sans);
     font-weight: 700;
@@ -199,6 +245,10 @@ const { posts } = Astro.props;
     text-align: left;
     text-transform: uppercase;
     margin-right: 16px;
+  }
+
+  .post-item h3 {
+    margin: 0.8em 0 0.2em;
   }
 
   .post-item p {

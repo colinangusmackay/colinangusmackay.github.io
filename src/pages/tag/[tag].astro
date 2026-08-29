@@ -34,7 +34,7 @@ const permalink = `${Astro.site.href}tag/${Astro.params.tag}`;
 <BaseLayout title={title} description={description} permalink={permalink} current="blog">
   <div class="container">
     <h1>Tag: {tagName}</h1>
-    <p><a href="/tag">All tags</a></p>
+    <p><a href="/tag">All tags</a> | <a href="/blog">All posts</a></p>
     <PostList posts={posts} />
   </div>
 </BaseLayout>
